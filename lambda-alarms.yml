@@ -7,6 +7,8 @@ Resources:
     Properties:
       AlarmDescription: Lambda Throttle Alarm for myService
       AlarmName: gbq-myService-throttle-alarm
+      AlarmActions: 
+        - arn:aws:sns:us-east-1:035458612173:alarms
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 1
       MetricName: Throttles
