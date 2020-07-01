@@ -1,14 +1,25 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Lambda Alarms
 
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Default: gbq-lnhstry
+  SNSTopicName:
+    Type: String
+    Default: alarms
+  AppLogGroupName:
+    Type: String
+    Default: gbq-myService-throttle-alarm
+
 Resources:
   LambdaThrottleAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Lambda Throttle Alarm for myService
-      AlarmName: gbq-myService-throttle-alarm
+      AlarmName: !Sub AWS_fn~${AppLogGroupName}~errors
       AlarmActions: 
-        - arn:aws:sns:us-east-1:035458612173:alarms
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicName}
       ComparisonOperator: GreaterThanOrEqualToThreshold
       EvaluationPeriods: 1
       MetricName: Throttles
@@ -18,6 +29,18 @@ Resources:
       DatapointsToAlarm: 1
       Dimensions:
         - Name: FunctionName
-          Value: myService
+          Value: !Ref LambdaFunctionName
       Period: 300
       TreatMissingData: missing
+  
+  LambdaThrottleAlarm:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: /aws/lambda/myService
+      FilterPattern: '[ip, id, user, timestamp, request="GET *&download=Yes*", status_code, size]'
+      MetricTransformations:
+        - MetricValue: 1
+          MetricNamespace: GP/GBQ
+          DefaultValue: 0
+          MetricName: helloThisismymetric
+    
